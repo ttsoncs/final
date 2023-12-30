@@ -1,0 +1,7 @@
+/home/ttson/Downloads/mini-dnn-cpp-master/build/CMakeFiles/train.dir
+/home/ttson/Downloads/mini-dnn-cpp-master/build/CMakeFiles/test.dir
+/home/ttson/Downloads/mini-dnn-cpp-master/build/CMakeFiles/edit_cache.dir
+/home/ttson/Downloads/mini-dnn-cpp-master/build/CMakeFiles/rebuild_cache.dir
+/home/ttson/Downloads/mini-dnn-cpp-master/build/src/CMakeFiles/MiniDNNLib.dir
+/home/ttson/Downloads/mini-dnn-cpp-master/build/src/CMakeFiles/edit_cache.dir
+/home/ttson/Downloads/mini-dnn-cpp-master/build/src/CMakeFiles/rebuild_cache.dir
