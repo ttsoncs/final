@@ -1,10 +1,6 @@
 cmake_minimum_required (VERSION 3.0)
-project (myproject)
-if(CMAKE_CUDA_COMPILER)
-    enable_language(CUDA)
-    add_definitions(-DUSE_CUDA)    
-    include_directories("${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
-endif()
+project (myproject LANGUAGES CUDA CXX)
+enable_language(CUDA)
 include_directories ("${PROJECT_SOURCE_DIR}/third_party/eigen")
 # 查找当前目录下的所有源文件
 # 并将名称保存到 DIR_SRCS 变量
@@ -27,3 +23,4 @@ target_link_libraries(train_gpu MiniDNNLib)
 add_executable(test_gpu test_gpu.cc)
 # 添加链接库
 target_link_libraries(test_gpu MiniDNNLib)
+
