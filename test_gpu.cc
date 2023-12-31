@@ -11,7 +11,7 @@
 #include "src/layer.h"
 #include "src/layer/ave_pooling.h"
 #include "src/layer/conv.h"
-#include "src/layer/conv_cust.h"
+#include "src/layer/conv_gpu.h"
 #include "src/layer/fully_connected.h"
 #include "src/layer/max_pooling.h"
 #include "src/layer/relu.h"
@@ -32,9 +32,9 @@ int main() {
   std::cout << "mnist test number: " << dataset.test_labels.cols() << std::endl;
   // dnn
   Network dnn;
-  Layer *conv1 = new Conv_Custom(1, 28, 28, 6, 5, 5);
+  Layer *conv1 = new Conv_GPU(1, 28, 28, 6, 5, 5);
   Layer *pool1 = new MaxPooling(6, 24, 24, 2, 2, 2);
-  Layer *conv2 = new Conv_Custom(6, 12, 12, 16, 5, 5);
+  Layer *conv2 = new Conv_GPU(6, 12, 12, 16, 5, 5);
   Layer *pool2 = new MaxPooling(16, 8, 8, 2, 2, 2);
   Layer *fc3 = new FullyConnected(pool2->output_dim(), 120);
   Layer *fc4 = new FullyConnected(120, 84);
