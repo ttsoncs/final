@@ -56,19 +56,33 @@ void Conv_GPU::im2col(const Vector &image, Matrix &data_col) {
 void Conv_GPU::forward(const Matrix &bottom) {
   int n_sample = bottom.cols();
   top.resize(height_out * width_out * channel_out, n_sample);
-  float *input_data = (float *)bottom.data();
-  float *output_data = (float *)top.data();
-  float *weight_data = (float *)weight.data();
+  float *x = (float *)bottom.data();
+  float *y = (float *)top.data();
+  float *k = (float *)weight.data();
+  float *b = (float *)bias.data();
 
-  const int num_samples = n_sample;
-  const int input_channel = channel_in;
-  const int output_channel = channel_out;
-  const int kernel_height = height_kernel; // Assuming width_kernel is also K
+  const int B = n_sample;
+  const int M = channel_out;
+  const int C = channel_in;
+  const int K = height_kernel; // Assuming width_kernel is also K
 
-  // Start layer timer
-  gpuInterface.conv_forward_gpu_full(output_data, input_data, weight_data,
-                                     num_samples, output_channel, input_channel,
-                                     height_in, width_in, kernel_height);
+  float *x_d;
+  float *y_d;
+  float *k_d;
+
+  std::cout << "Conv-GPU==" << std::endl;
+
+  // Data transfer CPU to GPU
+  gpuInterface.conv_forward_gpu_prolog(y, x, k, &y_d, &x_d, &k_d, B, M, C,
+                                       height_in, width_in, K);
+
+  // Hand off to GPU for computation
+  gpuInterface.conv_forward_gpu(y_d, x_d, k_d, B, M, C, height_in, width_in, K);
+  cudaDeviceSynchronize();
+
+  // Data transfer GPU to CPU
+  gpuInterface.conv_forward_gpu_epilog(y, y_d, x_d, k_d, B, M, C, height_in,
+                                       width_in, K);
 }
 
 void Conv_GPU::col2im(const Matrix &data_col, Vector &image) {
