@@ -1,6 +1,10 @@
 cmake_minimum_required (VERSION 3.0)
 project (myproject)
-enable_language(CUDA)
+if(CMAKE_CUDA_COMPILER)
+    enable_language(CUDA)
+    add_definitions(-DUSE_CUDA)    
+    include_directories("${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
+endif()
 include_directories ("${PROJECT_SOURCE_DIR}/third_party/eigen")
 # 查找当前目录下的所有源文件
 # 并将名称保存到 DIR_SRCS 变量
