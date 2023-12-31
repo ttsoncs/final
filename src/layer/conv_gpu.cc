@@ -65,7 +65,6 @@ void Conv_GPU::forward(const Matrix &bottom) {
   const int output_channel = channel_out;
   const int kernel_height = height_kernel; // Assuming width_kernel is also K
 
-  GPUInterface gpuInterface;
   // Start layer timer
   gpuInterface.conv_forward_gpu_full(output_data, input_data, weight_data,
                                      num_samples, output_channel, input_channel,

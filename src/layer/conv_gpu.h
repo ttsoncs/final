@@ -8,31 +8,30 @@
 
 class Conv_GPU : public Layer {
 private:
-  // dim size of input and output
   const int dim_in;
   int dim_out;
-  // size of input
+
   int channel_in;
   int height_in;
   int width_in;
-  // size of kernel
+  int channel_out;
   int height_kernel;
   int width_kernel;
-  // stride and padding
   int stride;
   int pad_h;
   int pad_w;
-  // size of output
+
   int height_out;
   int width_out;
-  int channel_out;
-  // weight and bias
+  
   Matrix weight; // weight param, size=channel_in*h_kernel*w_kernel*channel_out
   Vector bias;   // bias param, size = channel_out
   Matrix grad_weight; // gradient w.r.t weight
   Vector grad_bias;   // gradient w.r.t bias
 
   std::vector<Matrix> data_cols;
+  
+  GPUInterface gpuInterface;
 
   void init();
 
@@ -58,4 +57,4 @@ public:
   void set_parameters(const std::vector<float> &param);
 };
 
-#endif // SRC_LAYER_CONV_H_
+#endif // SRC_LAYER_CONV_GPU_H_
