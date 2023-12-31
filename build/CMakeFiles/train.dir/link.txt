@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/train.dir/train.cc.o -o train  src/libMiniDNNLib.a 
