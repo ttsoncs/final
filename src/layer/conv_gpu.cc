@@ -20,43 +20,6 @@ void Conv_GPU::init()
     // std::cout << weight.colwise().sum() + bias.transpose() << std::endl;
 }
 
-void Conv_GPU::forward(const Matrix &bottom)
-{
-    int n_sample = bottom.cols();
-    top.resize(height_out * width_out * channel_out, n_sample);
-    float *input_data = (float *)bottom.data();
-    float *output_data = (float *)top.data();
-    float *weight_data = (float *)weight.data();
-
-    const int num_samples = n_sample;
-    const int input_channel = channel_in;
-    const int output_channel = channel_out;
-    const int kernel_height = height_kernel; // Assuming width_kernel is also K
-
-    GPUInterface gpuInterface;
-    std::cout << "Convolution - GPU:" << std::endl;
-
-    // Launch marker kernel to aid with student function timing
-    // gpuInterface.insert_pre_barrier_kernel();
-
-    // Start layer timer
-    GpuTimer timer;
-	timer.Start();
-    gpuInterface.conv_forward_gpu_full(output_data, input_data, weight_data,
-                                    num_samples, output_channel, input_channel,
-                                    height_in, width_in, kernel_height);
-
-    // Stop layer timer
-    timer.Stop();
-	float duration_layer = timer.Elapsed();
-
-    // Launch barrier kernel to aid with timing with nsight-compute
-    // gpuInterface.insert_post_barrier_kernel();
-    
-    std::cout << "\t - Layer Time: " << duration_layer << " ms" << std::endl;
- 
-}
-
 // im2col, used for bottom
 // image size: Vector (height_in * width_in * channel_in)
 // data_col size: Matrix (hw_out, hw_kernel * channel_in)
@@ -87,6 +50,36 @@ void Conv_GPU::im2col(const Vector& image, Matrix& data_col) {
       }
     }
   }
+}
+
+void Conv_GPU::forward(const Matrix &bottom)
+{
+    int n_sample = bottom.cols();
+    top.resize(height_out * width_out * channel_out, n_sample);
+    float *input_data = (float *)bottom.data();
+    float *output_data = (float *)top.data();
+    float *weight_data = (float *)weight.data();
+
+    const int num_samples = n_sample;
+    const int input_channel = channel_in;
+    const int output_channel = channel_out;
+    const int kernel_height = height_kernel; // Assuming width_kernel is also K
+
+    GPUInterface gpuInterface;
+    // Start layer timer
+    GpuTimer timer;
+	timer.Start();
+	
+    gpuInterface.conv_forward_gpu_full(output_data, input_data, weight_data,
+                                    num_samples, output_channel, input_channel,
+                                    height_in, width_in, kernel_height);
+
+    // Stop layer timer
+    timer.Stop();
+    
+	float duration_layer = timer.Elapsed();
+    std::cout << "\t - Layer Time: " << duration_layer << " ms" << std::endl;
+ 
 }
 
 void Conv_GPU::col2im(const Matrix &data_col, Vector &image)

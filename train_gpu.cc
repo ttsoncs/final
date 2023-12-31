@@ -92,6 +92,6 @@ int main(int argc, char *argv[]) {
       dnn.update(opt);
     }
   }
-  dnn.save_parameters("../model/weights.bin");
+  dnn.save_parameters("../model/weights_gpu.bin");
   return 0;
 }
