@@ -49,10 +49,13 @@ void Conv::im2col(const Vector& image, Matrix& data_col) {
   }
 }
 
+static int count = 1;
+
 void Conv::forward(const Matrix& bottom) {
   int n_sample = bottom.cols();
   top.resize(height_out * width_out * channel_out, n_sample);
   data_cols.resize(n_sample);
+  auto start = std::chrono::high_resolution_clock::now();
   for (int i = 0; i < n_sample; i ++) {
     // im2col
     Matrix data_col;
@@ -63,6 +66,10 @@ void Conv::forward(const Matrix& bottom) {
     result.rowwise() += bias.transpose();
     top.col(i) = Eigen::Map<Vector>(result.data(), result.size());
   }
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<float, std::milli> duration = (end - start);
+  std::cout<< "processing time convolution layer " << count << " :" << duration.count() << " ms" << std::endl;
+  count += 2;
 }
 
 // col2im, used for grad_bottom
@@ -154,3 +161,4 @@ std::vector<float> Conv::get_derivatives() const {
             res.begin() + grad_weight.size());
   return res;
 }
+

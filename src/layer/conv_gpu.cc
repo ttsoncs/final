@@ -53,18 +53,60 @@ void Conv_GPU::im2col(const Vector &image, Matrix &data_col) {
   }
 }
 
+struct GpuTimer
+{
+    cudaEvent_t start;
+    cudaEvent_t stop;
+
+    GpuTimer()
+    {
+        cudaEventCreate(&start);
+        cudaEventCreate(&stop);
+    }
+
+    ~GpuTimer()
+    {
+        cudaEventDestroy(start);
+        cudaEventDestroy(stop);
+    }
+
+    void Start()
+    {
+        cudaEventRecord(start, 0);
+        cudaEventSynchronize(start); 
+    }
+
+    void Stop()
+    {
+        cudaEventRecord(stop, 0);
+    }
+
+    float Elapsed()
+    {
+        float elapsed;
+        cudaEventSynchronize(stop);
+        cudaEventElapsedTime(&elapsed, start, stop);
+        return elapsed;
+    }
+};
+
+static int count = 1;
+
 void Conv_GPU::forward(const Matrix &bottom) {
   int n_sample = bottom.cols();
   top.resize(height_out * width_out * channel_out, n_sample);
   float *input = (float *)bottom.data();
   float *output = (float *)top.data();
-  float *weight = (float *)weight.data();
-  float *bias = (float *)bias.data();
+  float *weight_ = (float *)weight.data();
+  float *bias_ = (float *)bias.data();
   float *d_input;
   float *d_output;
   float *d_weight;
+  
+  GpuTimer timer; 
+  timer.Start();
   // Data transfer CPU to GPU
-  gpuInterface.conv_forward_gpu_prolog(output, input, weight, &d_output, &d_input, &d_weight, n_sample, channel_out, channel_in,
+  gpuInterface.conv_forward_gpu_prolog(output, input, weight_, &d_output, &d_input, &d_weight, n_sample, channel_out, channel_in,
                                        height_in, width_in, height_kernel);
 
   // Hand off to GPU for computation
@@ -73,6 +115,10 @@ void Conv_GPU::forward(const Matrix &bottom) {
 
   // Data transfer GPU to CPU
   gpuInterface.conv_forward_gpu_epilog(output, d_output, d_input, d_weight, n_sample, channel_out, channel_in, height_in, width_in, height_kernel);
+  
+  timer.Stop();
+  printf("processing time convolution layer %d: %.3f ms\n", count, timer.Elapsed());
+  count += 2;
 }
 
 void Conv_GPU::col2im(const Matrix &data_col, Vector &image) {
@@ -167,3 +213,4 @@ std::vector<float> Conv_GPU::get_derivatives() const {
             res.begin() + grad_weight.size());
   return res;
 }
+

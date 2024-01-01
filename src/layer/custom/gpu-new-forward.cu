@@ -1,6 +1,7 @@
-#include "gpu-new-forward.h"
 #include <cmath>
 #include <iostream>
+#include "gpu-new-forward.h"
+
 
 #define TILE_WIDTH 16
 
@@ -16,89 +17,47 @@
     }\
 }
 
-struct GpuTimer
-{
-    cudaEvent_t start;
-    cudaEvent_t stop;
-
-    GpuTimer()
-    {
-        cudaEventCreate(&start);
-        cudaEventCreate(&stop);
-    }
-
-    ~GpuTimer()
-    {
-        cudaEventDestroy(start);
-        cudaEventDestroy(stop);
-    }
-
-    void Start()
-    {
-        cudaEventRecord(start, 0);
-        cudaEventSynchronize(start); 
-    }
-
-    void Stop()
-    {
-        cudaEventRecord(stop, 0);
-    }
-
-    float Elapsed()
-    {
-        float elapsed;
-        cudaEventSynchronize(stop);
-        cudaEventElapsedTime(&elapsed, start, stop);
-        return elapsed;
-    }
-};
-
 
 __global__ void conv_forward_kernel(float *d_output, const float *d_input, const float *d_weight,
-                                    const int n_sample, const int channel_in, const int channel_out,
-                                    const int height_in, const int width_in, const int height_kernel) {
+                                    const int n_sample, const int channel_out, const int channel_in,
+                                    const int height_in, const int width_in, const int height_kernel)
+{
+    const int height_out = height_in - height_kernel + 1;
+    const int width_out = width_in - height_kernel + 1;
 
-  const int height_out = height_in - height_kernel + 1;
-  const int width_out = width_in - height_kernel + 1;
+    // An example use of these macros:
+    // float a = y4d(0,0,0,0)
+    // y4d(0,0,0,0) = a
+#define y4d(i3, i2, i1, i0) d_output[(i3) * (channel_out * height_out * width_out) + (i2) * (height_out * width_out) + (i1) * (width_out) + i0]
+#define x4d(i3, i2, i1, i0) d_input[(i3) * (channel_in * height_in * width_in) + (i2) * (height_in * width_in) + (i1) * (width_in) + i0]
+#define k4d(i3, i2, i1, i0) d_weight[(i3) * (channel_in * height_kernel * height_kernel) + (i2) * (height_kernel * height_kernel) + (i1) * (height_kernel) + i0]
 
-  // An example use of these macros:
-  // float a = y4d(0,0,0,0)
-  // y4d(0,0,0,0) = a
-#define y4d(i3, i2, i1, i0)                                                    \
-  y[(i3) * (M * H_out * W_out) + (i2) * (H_out * W_out) + (i1) * (W_out) + i0]
-#define x4d(i3, i2, i1, i0)                                                    \
-  x[(i3) * (C * H * W) + (i2) * (H * W) + (i1) * (W) + i0]
-#define k4d(i3, i2, i1, i0)                                                    \
-  k[(i3) * (C * K * K) + (i2) * (K * K) + (i1) * (K) + i0]
+    int height_grid = ceil(1.0*height_out / TILE_WIDTH);
+    int width_grid = ceil(1.0*width_out / TILE_WIDTH); 
+    
+    int b = blockIdx.x;                 // batch number
+    int m = blockIdx.y;                 // output feature
+    int h = (blockIdx.z / width_grid) * TILE_WIDTH + threadIdx.y; // row of the image matrix
+    int w = (blockIdx.z % width_grid) * TILE_WIDTH + threadIdx.x; // col of the image matrix
+    
+    float accum = 0.0f;
 
-  int height_grid = ceil(1.0 * height_out / TILE_WIDTH);
-  int width_grid = ceil(1.0 * width_out / TILE_WIDTH);
-
-  int b = blockIdx.x; // batch number
-  int m = blockIdx.y; // output feature
-  int h = (blockIdx.z / width_grid) * TILE_WIDTH +
-          threadIdx.y; // row of the image matrix
-  int w = (blockIdx.z % width_grid) * TILE_WIDTH +
-          threadIdx.x; // col of the image matrix
-
-  float accum = 0.0f;
-
-  if (h < height_out && w < width_out) {
-    for (int c = 0; c < channel_in; c++) // sum over all input features
+    if (h < height_out && w < width_out) 
     {
-      for (int p = 0; p < height_kernel; p++) // KxK filter
-        for (int q = 0; q < height_kernel; q++)
-          accum += x4d(b, c, h + p, w + q) *
-                   k4d(m, c, p, q); // 4 dimensions macro resolve thread index
-    }
-    y4d(b, m, h, w) = accum;
-  }
+        for(int c=0; c<channel_in; c++)             // sum over all input features
+        {
+            for(int p=0; p<height_kernel; p++)         // KxK filter 
+                for(int q=0; q<height_kernel; q++)
+                    accum += x4d(b, c, h+p, w+q) * k4d(m, c, p, q); // 4 dimensions macro resolve thread index
+        }
+        y4d(b,m,h,w) = accum;
+    } // endif (h < H_out && w < W_out)
 
-#undef y4d
-#undef x4d
-#undef k4d
+    #undef y4d
+    #undef x4d
+    #undef k4d
 }
-
+	
 void GPUInterface::conv_forward_gpu_prolog(
     const float *output, const float *input,
                                const float *weight, float **d_output,
@@ -128,6 +87,7 @@ void GPUInterface::conv_forward_gpu_prolog(
   CHECK(cudaMemcpy(*d_weight, weight, maskSize, cudaMemcpyHostToDevice));
 }
 
+
 void GPUInterface::conv_forward_gpu(
     float *d_output, const float *d_input,
                         const float *d_weight, const int n_sample, const int channel_out,
@@ -145,7 +105,7 @@ void GPUInterface::conv_forward_gpu(
   dim3 blockSize(TILE_WIDTH, TILE_WIDTH, 1);
 
   // Grid Dimension = #of Blocks: Batch Size * Num_Output_Features *
-  dim3 gridSize(X, Y, Z);
+  dim3 gridSize(n_sample, channel_out, Z);
 
   // launch the kernel
   conv_forward_kernel<<<gridSize, blockSize>>>(
@@ -171,3 +131,5 @@ GPUInterface::conv_forward_gpu_epilog(float *output, float *d_output, float *d_i
   CHECK(cudaFree(d_output));
   CHECK(cudaFree(d_weight));
 }
+
+

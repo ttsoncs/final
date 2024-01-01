@@ -2,6 +2,7 @@
 #define SRC_LAYER_CONV_H_
 
 #include <vector>
+#include <chrono>
 #include "../layer.h"
 
 class Conv: public Layer {
@@ -53,3 +54,4 @@ class Conv: public Layer {
 };
 
 #endif  // SRC_LAYER_CONV_H_
+
