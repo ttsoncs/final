@@ -3,6 +3,7 @@
 
 #include "../layer.h"
 #include "./custom/gpu-new-forward.h"
+#include "./custom/gpu-new-forward-cmem.h"
 #include <chrono>
 #include <cuda_runtime.h>
 #include <vector>
@@ -33,6 +34,7 @@ private:
   std::vector<Matrix> data_cols;
   
   GPUInterface gpuInterface;
+  GPUInterfaceCMEM gpuInterfaceCMEM;
 
   void init();
 
@@ -59,3 +61,4 @@ public:
 };
 
 #endif // SRC_LAYER_CONV_GPU_H_
+

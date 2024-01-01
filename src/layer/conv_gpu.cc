@@ -214,3 +214,4 @@ std::vector<float> Conv_GPU::get_derivatives() const {
   return res;
 }
 
+
