@@ -3,18 +3,18 @@
 
 class GPUInterface {
 public:
-  void conv_forward_gpu_prolog(const float *host_y, const float *host_x,
-                               const float *host_k, float **device_y_ptr,
-                               float **device_x_ptr, float **device_k_ptr,
-                               const int B, const int M, const int C,
-                               const int H, const int W, const int K);
-  void conv_forward_gpu(float *device_y, const float *device_x,
-                        const float *device_k, const int B, const int M,
-                        const int C, const int H, const int W, const int K);
-  void conv_forward_gpu_epilog(float *host_y, float *device_y, float *device_x,
-                               float *device_k, const int B, const int M,
-                               const int C, const int H, const int W,
-                               const int K);
+  void conv_forward_gpu_prolog(const float *output, const float *input,
+                               const float *weight, float **d_output,
+                               float **d_input, float **d_weight,
+                               const int n_sample, const int channel_out, const int channel_in,
+                               const int height_in, const int width_in, const int height_kernel);
+  void conv_forward_gpu(float *d_output, const float *d_input,
+                        const float *d_weight, const int n_sample, const int channel_out,
+                        const int channel_in, const int height_in, const int width_in, const int height_kernel);
+  void conv_forward_gpu_epilog(float *output, float *d_output, float *d_input,
+                               float *d_weight, const int n_sample, const int channel_out,
+                               const int channel_in, const int height_in, const int width_in,
+                               const int height_kernel);
 };
 
 #endif

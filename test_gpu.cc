@@ -61,7 +61,7 @@ int main() {
   dnn.add_loss(loss);
 
   // test
-  dnn.load_parameters("../model/weights_gpu.bin");
+  dnn.load_parameters("../model/weights.bin");
   dnn.forward(dataset.test_data);
   float acc = compute_accuracy(dnn.output(), dataset.test_labels);
   std::cout << "test accuracy: " << acc * 100 << "%" << std::endl;
