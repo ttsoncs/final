@@ -66,7 +66,7 @@ void Conv::forward(const Matrix &bottom) {
                    height_in, width_in, height_kernel);
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<float, std::milli> duration = (end - start);
-  std::cout << "processing time convolution layer " << count << " :"
+  std::cout << "processing time convolution layer " << count << ": "
             << duration.count() << " ms" << std::endl;
   count += 2;
 }
@@ -88,7 +88,7 @@ void Conv::forward(const Matrix &bottom) {
 //   }
 //   auto end = std::chrono::high_resolution_clock::now();
 //   std::chrono::duration<float, std::milli> duration = (end - start);
-//   std::cout<< "processing time convolution layer " << count << " :" <<
+//   std::cout<< "processing time convolution layer " << count << ": " <<
 //   duration.count() << " ms" << std::endl; count += 2;
 // }
 
