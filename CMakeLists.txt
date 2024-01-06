@@ -20,3 +20,6 @@ add_executable(test_gpu test_gpu.cc)
 # 添加链接库
 target_link_libraries(test_gpu MiniDNNLib)
 
+add_executable(test_gpu_cmem test_gpu_cmem.cc)
+# 添加链接库
+target_link_libraries(test_gpu_cmem MiniDNNLib)

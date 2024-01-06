@@ -1,13 +1,13 @@
-#ifndef SRC_LAYER_CONV_GPU_H_
-#define SRC_LAYER_CONV_GPU_H_
+#ifndef SRC_LAYER_CONV_GPU_CMEM_H_
+#define SRC_LAYER_CONV_GPU_CMEM_H_
 
 #include "../layer.h"
-#include "./custom/gpu-new-forward.h"
+#include "./custom/gpu-new-forward-cmem.h"
 #include <chrono>
 #include <cuda_runtime.h>
 #include <vector>
 
-class Conv_GPU : public Layer {
+class Conv_GPU_CMEM : public Layer {
 private:
   const int dim_in;
   int dim_out;
@@ -32,14 +32,14 @@ private:
 
   std::vector<Matrix> data_cols;
 
-  GPUInterface gpuInterface;
+  GPUInterfaceCMEM gpuInterfaceCMEM;
 
   void init();
 
 public:
-  Conv_GPU(int channel_in, int height_in, int width_in, int channel_out,
-           int height_kernel, int width_kernel, int stride = 1, int pad_w = 0,
-           int pad_h = 0)
+  Conv_GPU_CMEM(int channel_in, int height_in, int width_in, int channel_out,
+                int height_kernel, int width_kernel, int stride = 1,
+                int pad_w = 0, int pad_h = 0)
       : dim_in(channel_in * height_in * width_in), channel_in(channel_in),
         height_in(height_in), width_in(width_in), channel_out(channel_out),
         height_kernel(height_kernel), width_kernel(width_kernel),
